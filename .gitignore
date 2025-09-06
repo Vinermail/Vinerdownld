@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.log
+
+# Виртуальное окружение
+venv/
+.env/
+
+# PyInstaller build
+dist/
+build/
+*.spec
+
+# IDE/Editor
+.vscode/
+.idea/
