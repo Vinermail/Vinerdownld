@@ -51,20 +51,19 @@ def open_folder():
         print("Файлов в папке нет.")
         return
 
-    # Находим файл с самой последней датой создания (ctime)
+    # Находим файл с самой последней датой создания (getctime)
     latest_file = max(files, key=os.path.getctime)
 
-    # Нормализуем путь к файлу, чтобы он использовал правильные слэши
+    # Нормализация пути к файлу
     normalized_path = os.path.normpath(latest_file)
 
-    # Формируем команду для Windows Explorer, чтобы открыть папку и выделить файл
+    # Формирование команды для explorer'a 
     command = f'explorer /select,"{normalized_path}"'
     
     # Запускаем команду
     try:
         subprocess.run(command, shell=True, check=True)
     except subprocess.CalledProcessError:
-        # Explorer часто возвращает 1 даже при успехе → игнорируем
         pass
 
 
