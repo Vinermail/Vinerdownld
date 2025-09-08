@@ -5,6 +5,8 @@
 import os
 import yt_dlp
 import subprocess
+import pythoncom
+import win32com.client
 
 DOWNLOAD_FOLDER = "C:/Users/hfhtu/Music/music"
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
@@ -48,7 +50,10 @@ def get_query():
 
 
 def open_folder():
-    """Открывает папку и выделяет последний созданный файл"""
+    """
+    Открывает папку и выделяет последний созданный файл.
+    Если папка уже открыта, выделяет файл в существующем окне.
+    """
     try:
         files = [os.path.join(DOWNLOAD_FOLDER, f) for f in os.listdir(DOWNLOAD_FOLDER)
                  if os.path.isfile(os.path.join(DOWNLOAD_FOLDER, f))]
@@ -62,12 +67,49 @@ def open_folder():
 
     latest_file = max(files, key=os.path.getctime)
     normalized_path = os.path.normpath(latest_file)
-    command = f'explorer /select,"{normalized_path}"'
 
+    # Инициализация COM-объектов
     try:
-        subprocess.run(command, shell=True, check=True)
-    except subprocess.CalledProcessError:
-        pass
+        pythoncom.CoInitialize()
+        shell = win32com.client.Dispatch("Shell.Application")
+    except Exception as e:
+        print(f"Ошибка инициализации COM: {e}")
+        # Если COM не работает, переходим к запасному варианту
+        subprocess.Popen(f'explorer /select,"{normalized_path}"', shell=True)
+        return
+
+    folder_found = False
+
+    # Проверяем все открытые окна Проводника
+    for window in shell.Windows():
+        try:
+            folder_path = window.Document.Folder.Self.Path
+            # Сравниваем пути, игнорируя регистр
+            if os.path.normcase(folder_path) == os.path.normcase(DOWNLOAD_FOLDER):
+                # Найдено существующее окно с нужной папкой
+                folder_found = True
+                
+                # Попытка выделить файл
+                window.Document.SelectItem(normalized_path, 0)
+                
+                # Если окно было свернуто, разворачиваем его и делаем активным
+                window.Visible = True
+                window.Top = 0
+                
+                print(f"Файл успешно выделен в существующем окне: {normalized_path}")
+                break
+        except Exception:
+            # Игнорируем ошибки, если окно не является папкой (например, "Этот компьютер")
+            continue
+
+    if not folder_found:
+        # Если папка не была найдена, открываем новое окно
+        try:
+            subprocess.run(f'explorer /select,"{normalized_path}"', shell=True, check=True)
+            print(f"Открыто новое окно и выделен файл: {normalized_path}")
+        except subprocess.CalledProcessError as e:
+            print(f"Ошибка при запуске explorer: {e}")
+
 
 def main():
     global first_start
