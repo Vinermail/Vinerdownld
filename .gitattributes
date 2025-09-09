@@ -5,6 +5,7 @@
 # Игнорировать скомпилированные папки
 dist/* linguist-vendored
 build/* linguist-vendored
+Config/* linguist-vendored
 
 # Учитывать только Python
 *.py linguist-detectable=true
