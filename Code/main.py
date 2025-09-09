@@ -1,13 +1,71 @@
 # Компилирование вместе с консолью: pyinstaller --onefile main.py
-# TODO: Сделать конфиг с настройками
+# Сделать конфиг с настройками
 
 import os
+import json
 import yt_dlp
 import subprocess
 import pythoncom
 import win32com.client
 
+config_file_name = r"C:\Users\hfhtu\Desktop\Puthon\audio-player\main-git\Config\config.json"
+
+def load_config():
+    """
+    Загружает конфигурацию из JSON-файла.
+    Возвращает словарь с настройками.
+    """
+
+    default_config = {
+        "download_folder": "",
+        "cookie_file": "",
+        "first_start": True
+    }
+
+    try:
+        with open(config_file_name, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            return config
+    except FileNotFoundError:
+        if not os.path.exists(config_file_name):
+            print(f"Конфигурационный файл '{config_file_name}' не найден. Создаю его с настройками по умолчанию.")
+            try:
+                with open(config_file_name, 'w', encoding='utf-8') as f:
+                    json.dump(default_config, f, indent=4)
+            except IOError as e:
+                print(f"Ошибка при создании файла: {e}")
+                return None
+        return None
+    except json.JSONDecodeError:
+        print(f"Ошибка: Файл '{config_file_name}' содержит неверный формат JSON.")
+        return None
+
+config = load_config()
+
+if config:
+    # Присваиваем значения из конфига
+    DOWNLOAD_FOLDER = config.get("download_folder")
+    COOKIE_FILE = config.get("cookie_file")
+    first_start = config.get("first_start")
+    
+    # Создаем папку для загрузок, если её нет
+    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+    
+    # Теперь ваши переменные готовы к использованию
+    print(f"Папка для загрузок: {DOWNLOAD_FOLDER}")
+    print(f"Файл куки: {COOKIE_FILE}")
+    print(f"Первый запуск: {first_start}")
+
+else:
+    # Если файл не загружен, можно либо выйти из программы, либо использовать значения по умолчанию.
+    print("Не удалось загрузить конфигурацию. Программа будет использовать стандартные значения.")
+    # Используем стандартные значения, чтобы программа могла работать.
+    DOWNLOAD_FOLDER = "C:/Users/hfhtu/Music/music"
+    COOKIE_FILE = "C:/Users/hfhtu/Desktop/Puthon/audio-player/cookies/www.youtube.com_cookies.txt"
+    first_start = True
+
 DOWNLOAD_FOLDER = "C:/Users/hfhtu/Music/music"
+COOKIE_FILE = "C:/Users/hfhtu/Desktop/Puthon/audio-player/cookies/www.youtube.com_cookies.txt"
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 first_start = True
@@ -21,17 +79,25 @@ def choose_format():
             return {
                 "format": "bestaudio/best",
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-                "cookiefile": "C:/Users/hfhtu/Desktop/Puthon/audio-player/cookies/www.youtube.com_cookies.txt",
+                "cookiefile": COOKIE_FILE,
                 "postprocessors": [
                     {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}
                 ],
+            }
+        
+        elif save_format == "":  # mp4
+            return {
+                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
+                "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
+                "cookiefile": COOKIE_FILE,
+                "merge_output_format": "mp4",
             }
 
         elif "4" in save_format:  # mp4
             return {
                 "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-                "cookiefile": "C:/Users/hfhtu/Desktop/Puthon/audio-player/cookies/www.youtube.com_cookies.txt",
+                "cookiefile": COOKIE_FILE,
                 "merge_output_format": "mp4",
             }
 
