@@ -18,11 +18,3 @@ build/
 # IDE/Editor
 .vscode/
 .idea/
-
-# Игнорировать HTML и TeX
-*.html linguist-detectable=false
-*.tex linguist-detectable=false
-
-# Игнорировать скомпилированные папки
-dist/* linguist-vendored
-build/* linguist-vendored
