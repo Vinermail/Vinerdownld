@@ -1,6 +1,7 @@
 # Игнорировать HTML и TeX файлы
 *.html linguist-detectable=false
 *.tex linguist-detectable=false
+*.toc linguist-detectable=false
 
 # Игнорировать скомпилированные папки
 dist/* linguist-vendored
