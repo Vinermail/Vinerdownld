@@ -1,0 +1,10 @@
+# Игнорировать HTML и TeX файлы
+*.html linguist-detectable=false
+*.tex linguist-detectable=false
+
+# Игнорировать скомпилированные папки
+dist/* linguist-vendored
+build/* linguist-vendored
+
+# Учитывать только Python
+*.py linguist-detectable=true
