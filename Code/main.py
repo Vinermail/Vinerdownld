@@ -13,32 +13,48 @@ config_file_name = r"C:\Users\hfhtu\Desktop\Puthon\audio-player\main-git\Config\
 def load_config():
     """
     Загружает конфигурацию из JSON-файла.
-    Возвращает словарь с настройками.
+    Если файла нет, спрашивает у пользователя и создает новый.
     """
-
     default_config = {
         "download_folder": "",
         "cookie_file": "",
         "first_start": True
     }
 
+    # Если файл есть — пробуем загрузить
     try:
-        with open(config_file_name, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            return config
+        with open(config_file_name, "r", encoding="utf-8") as f:
+            return json.load(f)
     except FileNotFoundError:
-        if not os.path.exists(config_file_name):
-            print(f"Конфигурационный файл '{config_file_name}' не найден. Создаю его с настройками по умолчанию.")
-            try:
-                with open(config_file_name, 'w', encoding='utf-8') as f:
-                    json.dump(default_config, f, indent=4)
-            except IOError as e:
-                print(f"Ошибка при создании файла: {e}")
-                return None
-        return None
+        print(f"⚠ Конфигурационный файл '{config_file_name}' не найден.")
+        
+        # Спрашиваем у пользователя настройки
+        download_folder = input("Введите путь к папке для сохранения скачанных видео: ").strip()
+        os.makedirs(download_folder, exist_ok=True)  # создаем папку, если её нет
+
+        cookie_file = input("Введите путь к cookies-файлу (или оставьте пустым, если не нужен): ").strip()
+
+        # Формируем новый конфиг
+        config = {
+            "download_folder": download_folder,
+            "cookie_file": cookie_file,
+            "first_start": True
+        }
+
+        # Сохраняем в файл
+        try:
+            with open(config_file_name, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=4, ensure_ascii=False)
+            print(f"✅ Конфиг создан: {config_file_name}")
+        except IOError as e:
+            print(f"Ошибка при создании файла: {e}")
+            return default_config
+
+        return config
+
     except json.JSONDecodeError:
-        print(f"Ошибка: Файл '{config_file_name}' содержит неверный формат JSON.")
-        return None
+        print(f"Ошибка: Файл '{config_file_name}' содержит неверный JSON.")
+        return default_config
 
 config = load_config()
 
