@@ -1,14 +1,58 @@
 # Компилирование вместе с консолью: pyinstaller --onefile main.py
-# Сделать конфиг с настройками
 
 import os
+import sys
 import json
 import yt_dlp
 import subprocess
 import pythoncom
 import win32com.client
 
-config_file_name = r"C:\Users\hfhtu\Desktop\Puthon\audio-player\main-git\Config\config.json"
+if getattr(sys, 'frozen', False):  
+    ROOT_DIR = os.path.dirname(sys.executable)
+else:
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+config_file_name = os.path.join(ROOT_DIR, "config.json")
+
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QRadioButton, QLineEdit
+
+class DownloaderUI(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Vinerdowld Downloader")
+        self.setFixedSize(500, 300)
+
+        layout = QVBoxLayout()
+
+        # Радиокнопки
+        self.video_btn = QRadioButton("Видео")
+        self.audio_btn = QRadioButton("Аудио")
+        layout.addWidget(self.video_btn)
+        layout.addWidget(self.audio_btn)
+
+        # Выбор папки
+        self.folder_label = QLabel("Папка для сохранения:")
+        self.folder_path = QLineEdit()
+        self.folder_btn = QPushButton("Выбрать папку")
+        self.folder_btn.clicked.connect(self.choose_folder)
+
+        layout.addWidget(self.folder_label)
+        layout.addWidget(self.folder_path)
+        layout.addWidget(self.folder_btn)
+
+        # Кнопка запуска
+        self.start_btn = QPushButton("⏬ Скачать")
+        layout.addWidget(self.start_btn)
+
+        self.setLayout(layout)
+
+    def choose_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Выберите папку")
+        if folder:
+            self.folder_path.setText(folder)
 
 def load_config():
     """
@@ -63,9 +107,7 @@ if config:
     DOWNLOAD_FOLDER = config.get("download_folder")
     COOKIE_FILE = config.get("cookie_file")
     first_start = config.get("first_start")
-    
-    # Создаем папку для загрузок, если её нет
-    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
     
     # Теперь ваши переменные готовы к использованию
     print(f"Папка для загрузок: {DOWNLOAD_FOLDER}")
@@ -180,11 +222,11 @@ def open_folder():
                 print(f"Файл успешно выделен в существующем окне: {normalized_path}")
                 break
         except Exception:
-            # Игнорируем ошибки, если окно не является папкой (например, "Этот компьютер")
+            
             continue
 
     if not folder_found:
-        # Если папка не была найдена, открываем новое окно
+        
         try:
             subprocess.run(f'explorer /select,"{normalized_path}"', shell=True, check=True)
             print(f"Открыто новое окно и выделен файл: {normalized_path}")
@@ -194,8 +236,10 @@ def open_folder():
 
 def main():
     global first_start
+
     if first_start:
         print("(◕‿◕) Vinerdowld может скачивать видео и клипы с YouTube, в формате mp3 или mp4.")
+        print(ROOT_DIR, "пенис")
         first_start = False
 
     while True:
@@ -214,4 +258,8 @@ def main():
             continue
 
 if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = DownloaderUI()
+    window.show()
+    sys.exit(app.exec_())
     main()
